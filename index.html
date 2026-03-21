@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Workbook A</title>
+
+<style>
+body {
+  margin: 0;
+  background: white;
+  overflow: hidden;
+  cursor: none;
+  height: 100vh;
+}
+
+/* 文字容器 */
+.title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 6vw;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  display: flex;
+  gap: 0.05em;
+}
+
+/* 每个字母 */
+.letter {
+  display: inline-block;
+  color: black;
+  transition: transform 1s ease-in, opacity 1s ease-in;
+}
+
+/* 鼠标 */
+.cursor {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  background: black;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 拖尾 */
+.trail {
+  position: fixed;
+  border-radius: 50%;
+  background: black;
+  pointer-events: none;
+}
+
+/* 🌑 黑屏遮罩（重点） */
+.fade-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+
+  opacity: 0;
+  pointer-events: none;
+
+  z-index: 9999;
+  transition: opacity 1.2s ease;
+}
+</style>
+</head>
+
+<body>
+
+<div class="title" id="title">WORKBOOK A</div>
+<div class="cursor"></div>
+
+<!-- 🌑 黑屏层 -->
+<div class="fade-screen" id="fadeScreen"></div>
+
+<script>
+const title = document.getElementById("title");
+const fadeScreen = document.getElementById("fadeScreen");
+
+/* 拆分字母 */
+let text = title.innerText;
+title.innerHTML = "";
+
+[...text].forEach(char => {
+  let span = document.createElement("span");
+  span.className = "letter";
+  span.innerText = char;
+  title.appendChild(span);
+});
+
+const letters = document.querySelectorAll(".letter");
+
+/* 点击 → 掉落 + 渐黑跳转 */
+title.addEventListener("click", () => {
+
+  /* 字母掉落 */
+  letters.forEach(letter => {
+    let x = (Math.random() - 0.5) * 600;
+    let y = Math.random() * 800 + 300;
+    let r = (Math.random() - 0.5) * 720;
+
+    letter.style.transform = `translate(${x}px, ${y}px) rotate(${r}deg)`;
+    letter.style.opacity = 0;
+  });
+
+  /* 🌑 黑屏渐出 */
+  setTimeout(() => {
+    fadeScreen.style.opacity = 1;
+  }, 600);
+
+  /* ⏳ 跳转页面 */
+  setTimeout(() => {
+    window.location.href = "HOME.html";
+  }, 1800);
+});
+
+
+/* ===== 鼠标系统（保持不变）===== */
+const cursor = document.querySelector(".cursor");
+let trails = [];
+const trailCount = 8;
+
+/* 创建拖尾 */
+for (let i = 0; i < trailCount; i++) {
+  let t = document.createElement("div");
+  t.className = "trail";
+  document.body.appendChild(t);
+
+  trails.push({ el: t, x: 0, y: 0 });
+}
+
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top = e.clientY + "px";
+
+  trails[0].x = e.clientX;
+  trails[0].y = e.clientY;
+});
+
+/* 惯性拖尾 */
+function animate() {
+  for (let i = trails.length - 1; i > 0; i--) {
+    trails[i].x += (trails[i-1].x - trails[i].x) * 0.5;
+    trails[i].y += (trails[i-1].y - trails[i].y) * 0.5;
+  }
+
+  trails.forEach((t, i) => {
+    let scale = 1 - i / trailCount;
+    let opacity = 1 - i / trailCount;
+
+    t.el.style.width = 8 * scale + "px";
+    t.el.style.height = 8 * scale + "px";
+    t.el.style.opacity = opacity;
+
+    t.el.style.left = t.x + "px";
+    t.el.style.top = t.y + "px";
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>

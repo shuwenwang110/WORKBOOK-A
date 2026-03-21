@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WEEK 1</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: black;
+    color: white;
+    font-family: Arial, sans-serif;
+
+    opacity: 0;
+    animation: fadeIn 0.7s ease forwards;
+
+    cursor: none;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+/* 🌌 星空 */
+#stars {
+    position: fixed;
+    width: 200%;
+    height: 200%;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+}
+
+/* 🌟 光标 */
+.cursor {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 8px white, 0 0 16px white;
+  z-index: 1000;
+}
+
+/* ✨ 拖尾 */
+.trail {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  background: white;
+  z-index: 999;
+}
+
+/* 📦 布局 */
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 100px;
+    position: relative;
+    z-index: 2;
+}
+
+.item {
+    width: 40%;
+    text-align: center;
+}
+
+.item img {
+    width: 100%;
+    transform: scale(0.85);
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    cursor: none;
+    border-radius: 10px;
+}
+
+/* ✨ 发光文字 */
+.caption {
+    margin-top: 15px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #eaeaea;
+
+    text-shadow:
+        0 0 3px rgba(255,255,255,0.9),
+        0 0 6px rgba(255,255,255,0.7),
+        0 0 12px rgba(255,255,255,0.5),
+        0 0 20px rgba(255,255,255,0.3),
+        0 0 30px rgba(255,255,255,0.15);
+}
+
+/* 🔍 图片放大层 */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(12px);
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+}
+
+.overlay img {
+    width: 57.5%;
+    border-radius: 10px;
+}
+
+/* 🌟 HOME 按钮 */
+.home-btn {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: black;
+    cursor: none;
+    box-shadow:
+        0 0 10px white,
+        0 0 20px rgba(255,255,255,0.7),
+        0 0 40px rgba(255,255,255,0.4);
+    z-index: 500;
+}
+
+.home-btn:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="stars"></div>
+
+<div class="container">
+    <div class="item">
+        <img src="IDEA.JPG" onclick="openImg(this.src)">
+        <div class="caption">
+            IDEA<br><br>
+            The first class challenged our divergent thinking. Our group was assigned a salad spoon. At the time, I thought it was a pasta spoon. We imagined it as a comb, a weapon, and an insect trap.
+        </div>
+    </div>
+
+    <div class="item">
+        <img src="SILK.JPG" onclick="openImg(this.src)">
+        <div class="caption">
+            SILK<br><br>
+            This is my favorite "useless" website. It allows users to set mirror layers and colors, like creating auroras in the stars. It established the visual style of my website.
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeImg()">
+    <img id="bigImg">
+</div>
+
+<div class="cursor" id="cursor"></div>
+<div class="home-btn" onclick="goHome()">H</div>
+
+<script>
+
+/* 🌌 星空 */
+const stars = document.getElementById("stars");
+
+for (let i = 0; i < 200; i++) {
+    let star = document.createElement("div");
+    star.className = "star";
+    star.style.left = Math.random() * 200 + "%";
+    star.style.top = Math.random() * 200 + "%";
+    stars.appendChild(star);
+}
+
+/* 🪐 视差 */
+let mx = 0, my = 0;
+let cx = 0, cy = 0;
+
+document.addEventListener("mousemove", e => {
+    mx = (e.clientX / window.innerWidth - 0.5) * 50;
+    my = (e.clientY / window.innerHeight - 0.5) * 50;
+
+    moveCursor(e);
+});
+
+function animate() {
+    cx += (mx - cx) * 0.05;
+    cy += (my - cy) * 0.05;
+
+    stars.style.transform = `translate(${cx * -0.5}px, ${cy * -0.5}px)`;
+
+    requestAnimationFrame(animate);
+}
+animate();
+
+/* 🔍 图片 */
+function openImg(src) {
+    document.getElementById("overlay").style.display = "flex";
+    document.getElementById("bigImg").src = src;
+}
+
+function closeImg() {
+    document.getElementById("overlay").style.display = "none";
+}
+
+/* 🏠 HOME */
+function goHome() {
+    window.location.href = "HOME.html";
+}
+
+/* 🌟 光标（改成 HOME 同款） */
+const cursor = document.getElementById("cursor");
+
+let trails = [];
+const trailCount = 10;
+
+for (let i = 0; i < trailCount; i++) {
+  let t = document.createElement("div");
+  t.className = "trail";
+  document.body.appendChild(t);
+  trails.push({ el: t, x: 0, y: 0 });
+}
+
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top = e.clientY + "px";
+
+  trails[0].x = e.clientX;
+  trails[0].y = e.clientY;
+});
+
+function animateCursor() {
+  for (let i = trails.length - 1; i > 0; i--) {
+    trails[i].x += (trails[i-1].x - trails[i].x) * 0.5;
+    trails[i].y += (trails[i-1].y - trails[i].y) * 0.5;
+  }
+
+  trails.forEach((t, i) => {
+    let scale = 1 - i / trailCount;
+    let opacity = 1 - i / trailCount;
+
+    t.el.style.width = 10 * scale + "px";
+    t.el.style.height = 10 * scale + "px";
+    t.el.style.opacity = opacity;
+
+    t.el.style.left = t.x + "px";
+    t.el.style.top = t.y + "px";
+  });
+
+  requestAnimationFrame(animateCursor);
+}
+
+animateCursor();
+
+</script>
+
+</body>
+</html>

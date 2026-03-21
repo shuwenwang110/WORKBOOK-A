@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hello World</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: black;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 800px;
+}
+
+/* 🌌 星空 */
+#stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.8;
+}
+
+/* 🌑开灯遮罩 */
+#light {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    z-index: 999;
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 0.84s ease; /* ✅ 已减少30% */
+}
+
+/* ✨文字 */
+h1 {
+    position: relative;
+    z-index: 2;
+
+    font-family: "Comic Sans MS", "Arial Rounded MT Bold", sans-serif;
+    font-size: 120px;
+    text-align: center;
+
+    background-image: url("./PINK.jpg");
+    background-size: cover;
+    background-position: center;
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* ✨发光羽化 */
+    -webkit-text-stroke: 2px rgba(255,255,255,0.6);
+    text-shadow:
+        0 0 10px rgba(255,255,255,0.6),
+        0 0 25px rgba(255,255,255,0.4),
+        0 0 40px rgba(255,255,255,0.2);
+
+    /* ⭐鼠标变 F */
+    cursor: url("./f.cur"), auto;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- 🌌 星空 -->
+<div id="stars"></div>
+
+<!-- 🌑开灯 -->
+<div id="light"></div>
+
+<!-- ✨文字 -->
+<h1 id="text">HELLO WORLD!</h1>
+
+<script>
+
+/* 🌟 星空生成 */
+const starsContainer = document.getElementById("stars");
+
+for (let i = 0; i < 300; i++) {
+    let star = document.createElement("div");
+    star.className = "star";
+
+    star.style.left = Math.random() * 200 + "%";
+    star.style.top = Math.random() * 200 + "%";
+
+    let size = Math.random() * 2;
+    star.style.width = size + "px";
+    star.style.height = size + "px";
+
+    starsContainer.appendChild(star);
+}
+
+/* 🌑 渐入（开灯） */
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        document.getElementById("light").style.opacity = 0;
+    }, 100);
+});
+
+/* 🪐 星空跟随鼠标 */
+let mouseX = 0;
+let mouseY = 0;
+
+let currentX = 0;
+let currentY = 0;
+
+document.addEventListener("mousemove", (e) => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 100;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 100;
+});
+
+function animate() {
+    currentX += (mouseX - currentX) * 0.05;
+    currentY += (mouseY - currentY) * 0.05;
+
+    starsContainer.style.transform = `
+        translate(${currentX * -0.5}px, ${currentY * -0.5}px)
+    `;
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+/* 🖱️ 点击文字 → 渐出 + 跳转 */
+const text = document.getElementById("text");
+
+text.addEventListener("click", () => {
+    const light = document.getElementById("light");
+
+    // 🌑 开始渐出
+    light.style.opacity = 1;
+
+    // ⏳ 等动画完成再跳转（0.84s）
+    setTimeout(() => {
+        window.location.href = "WEEK 1.html";
+    }, 700);
+});
+
+</script>
+
+</body>
+</html>

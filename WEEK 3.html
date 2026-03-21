@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>WEEK 3</title>
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  background: black;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: none; /* 改为无默认光标，适配自定义光标 */
+}
+/* 🌌 新增：星空背景（与WEEK1同款） */
+#stars {
+  position: fixed;
+  width: 200%;
+  height: 200%;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+}
+/* 🌟 新增：自定义光标+拖尾（与WEEK1同款） */
+.cursor {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 8px white, 0 0 16px white;
+  z-index: 1000;
+}
+.trail {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  background: white;
+  z-index: 999;
+}
+/* 场景 */
+.scene {
+  width: 800px;
+  height: 300px;
+  perspective: 1200px;
+  position: relative;
+  z-index: 2; /* 提高层级，置于星空之上 */
+}
+/* 滚筒 */
+.cylinder {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  transform-style: preserve-3d;
+}
+/* 图片 */
+.panel {
+  position: absolute;
+  width: 800px;
+  height: 200px;
+  left: 50%;
+  top: 50%;
+  margin-left: -400px;
+  margin-top: -100px;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(255,255,255,0.2);
+  transition: box-shadow 0.3s;
+}
+.panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-drag: none;
+  -webkit-user-drag: none;
+}
+/* ⭐ 中间文字 */
+.centerText {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  pointer-events: none;
+  text-shadow:
+    0 0 10px rgba(255,255,255,0.9),
+    0 0 20px rgba(255,255,255,0.7),
+    0 0 40px rgba(255,255,255,0.5);
+  animation: glowFade 4s ease-in-out infinite;
+}
+/* ⭐ 闪烁动画（平滑呼吸感） */
+@keyframes glowFade {
+  0% {
+    opacity: 1;
+    text-shadow:
+      0 0 10px rgba(255,255,255,0.9),
+      0 0 20px rgba(255,255,255,0.7),
+      0 0 40px rgba(255,255,255,0.5);
+  }
+  50% {
+    opacity: 0;
+    text-shadow:
+      0 0 5px rgba(255,255,255,0.3),
+      0 0 10px rgba(255,255,255,0.2),
+      0 0 20px rgba(255,255,255,0.1);
+  }
+  100% {
+    opacity: 1;
+    text-shadow:
+      0 0 10px rgba(255,255,255,0.9),
+      0 0 20px rgba(255,255,255,0.7),
+      0 0 40px rgba(255,255,255,0.5);
+  }
+}
+/* 🌟 新增：HOME按钮（与WEEK1同款，置于滚轮左侧） */
+.home-btn {
+  position: absolute;
+  left: -280px; /* 滚轮左侧固定位置 */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: black;
+  cursor: none;
+  box-shadow:
+    0 0 10px white,
+    0 0 20px rgba(255,255,255,0.7),
+    0 0 40px rgba(255,255,255,0.4);
+  z-index: 500;
+  transition: transform 0.2s ease;
+}
+.home-btn:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+</style>
+</head>
+<body>
+<!-- 新增：星空DOM -->
+<div id="stars"></div>
+
+<div class="scene">
+  <!-- 新增：HOME按钮，置于scene内实现滚轮左侧定位 -->
+  <div class="home-btn" onclick="goHome()">H</div>
+  
+  <div class="cylinder" id="cylinder">
+    <div class="panel"><img src="1.jpg"></div>
+    <div class="panel"><img src="2.jpg"></div>
+    <div class="panel"><img src="3.jpg"></div>
+    <div class="panel"><img src="4.jpg"></div>
+    <div class="panel"><img src="5.jpg"></div>
+  </div>
+  <div class="centerText">I built a website with AI</div>
+</div>
+
+<!-- 新增：自定义光标DOM -->
+<div class="cursor" id="cursor"></div>
+
+<script>
+// 🌌 新增：星空生成+视差效果（与WEEK1同款）
+const stars = document.getElementById("stars");
+for (let i = 0; i < 200; i++) {
+  let star = document.createElement("div");
+  star.className = "star";
+  star.style.left = Math.random() * 200 + "%";
+  star.style.top = Math.random() * 200 + "%";
+  stars.appendChild(star);
+}
+let mx = 0, my = 0;
+let cx = 0, cy = 0;
+document.addEventListener("mousemove", e => {
+  mx = (e.clientX / window.innerWidth - 0.5) * 50;
+  my = (e.clientY / window.innerHeight - 0.5) * 50;
+});
+function animateStars() {
+  cx += (mx - cx) * 0.05;
+  cy += (my - cy) * 0.05;
+  stars.style.transform = `translate(${cx * -0.5}px, ${cy * -0.5}px)`;
+  requestAnimationFrame(animateStars);
+}
+animateStars();
+
+// 🌟 新增：自定义光标+拖尾动画（与WEEK1同款）
+const cursor = document.getElementById("cursor");
+let trails = [];
+const trailCount = 10;
+for (let i = 0; i < trailCount; i++) {
+  let t = document.createElement("div");
+  t.className = "trail";
+  document.body.appendChild(t);
+  trails.push({ el: t, x: 0, y: 0 });
+}
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top = e.clientY + "px";
+  trails[0].x = e.clientX;
+  trails[0].y = e.clientY;
+});
+function animateCursor() {
+  for (let i = trails.length - 1; i > 0; i--) {
+    trails[i].x += (trails[i-1].x - trails[i].x) * 0.5;
+    trails[i].y += (trails[i-1].y - trails[i].y) * 0.5;
+  }
+  trails.forEach((t, i) => {
+    let scale = 1 - i / trailCount;
+    let opacity = 1 - i / trailCount;
+    t.el.style.width = 10 * scale + "px";
+    t.el.style.height = 10 * scale + "px";
+    t.el.style.opacity = opacity;
+    t.el.style.left = t.x + "px";
+    t.el.style.top = t.y + "px";
+  });
+  requestAnimationFrame(animateCursor);
+}
+animateCursor();
+
+// 🌟 新增：HOME按钮跳转方法（与WEEK1同款）
+function goHome() {
+  window.location.href = "HOME.html";
+}
+
+// 原有3D滚轮核心代码（无任何修改）
+const cylinder = document.getElementById("cylinder");
+const panels = document.querySelectorAll(".panel");
+const count = panels.length;
+const angleStep = 360 / count;
+const radius = 300;
+let rotation = 0;
+let velocity = 0;
+let isDragging = false;
+let lastY = 0;
+/* 初始化 */
+panels.forEach((panel, i) => {
+  const angle = i * angleStep;
+  panel.dataset.baseAngle = angle;
+  panel.style.transform = `
+    rotateX(${angle}deg) translateZ(${radius}px)
+  `;
+});
+/* 鼠标控制 */
+document.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  lastY = e.clientY;
+  velocity = 0;
+});
+document.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  let delta = e.clientY - lastY;
+  rotation -= delta * 0.4;
+  velocity = -delta * 0.15;
+  lastY = e.clientY;
+});
+document.addEventListener("mouseup", () => {
+  isDragging = false;
+});
+document.addEventListener("mouseleave", () => {
+  isDragging = false;
+});
+/* 动画 */
+function animate() {
+  if (!isDragging) {
+    rotation += velocity;
+    velocity *= 0.95;
+    if (Math.abs(velocity) < 0.01) {
+      rotation -= 0.08;
+    }
+  }
+  cylinder.style.transform = `rotateX(${rotation}deg)`;
+  /* 层级控制 */
+  panels.forEach(panel => {
+    const base = parseFloat(panel.dataset.baseAngle);
+    const total = base + rotation;
+    const normalized = ((total % 360) + 360) % 360;
+    if (normalized > 90 && normalized < 270) {
+      panel.style.zIndex = 0;
+      panel.style.opacity = 0.6;
+    } else {
+      panel.style.zIndex = 2;
+      panel.style.opacity = 1;
+    }
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// 同时执行所有动画
+requestAnimationFrame(() => {
+  animateStars();
+  animateCursor();
+  animate();
+});
+</script>
+</body>
+</html>
